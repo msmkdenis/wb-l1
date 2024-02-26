@@ -30,7 +30,7 @@ func firstProcess(input []int, first chan int) {
 
 func secondProcess(first chan int, second chan int) {
 	for v := range first {
-		second <- v * v
+		second <- v * 2
 	}
 	close(second)
 }

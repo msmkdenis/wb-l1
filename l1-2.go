@@ -25,19 +25,27 @@ func main() {
 
 	fmt.Println("---Второй способ - отправляем результат в канал и читаем из него в другой горутине---")
 	res := make(chan int)
-	go func() { // в отдельной горутине запустим чтение из канала
-		for r := range res {
-			println(r)
+
+	go func() {
+		wg = sync.WaitGroup{}
+		wg.Add(len(a))
+		for i := 0; i < len(a); i++ {
+			go func(i int) {
+				defer wg.Done()
+				res <- a[i] * a[i]
+			}(i)
 		}
+		wg.Wait()
+		close(res)
 	}()
 
-	wg.Add(len(a))
-	for i := 0; i < len(a); i++ {
-		go func(i int) {
-			defer wg.Done()
-			res <- a[i] * a[i]
-		}(i)
-	}
-	wg.Wait()  // ждем окончания работы цикла
-	close(res) // закрываем канал т.к. мы уверены, что больше писать в него не будем
+	wgPrint := sync.WaitGroup{}
+	wgPrint.Add(1)
+	go func() { // в отдельной горутине запустим чтение из канала
+		for r := range res {
+			fmt.Println(r)
+		}
+		wgPrint.Done()
+	}()
+	wgPrint.Wait() // подождем пока не выведется нужное кол-во элементов
 }
